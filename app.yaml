@@ -1,0 +1,5 @@
+runtime: python37
+script: __init__.py:app
+threadsafe: yes
+api_version:1
+application: CardManager
