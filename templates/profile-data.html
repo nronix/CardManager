@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+<!-- Begin Page Content -->
+{% block content %}
+    <div class="container-fluid">
+
+        <!-- DataTales Example -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">List of All Cards</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <div class="actionButtons hide">
+                        <button id="useforchecking"
+                                data-toggle="modal" data-target="#cardmodify" class="btn btn-success btn-circle btn-sm">
+                            <i class="fas fa-check"></i></button>
+                        <button id="usefordone"
+                                data-toggle="modal" data-target="#cardmodify" class="btn btn-info btn-circle btn-sm">
+                            <i class="fas fa-info-circle"></i></button>
+                        <button id="usefordeleting" data-toggle="modal" data-target="#cardmodify"
+                                class="btn btn-danger btn-circle btn-sm">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Name</th>
+                            <th>Card Number</th>
+                            <th>Month</th>
+                            <th>Year</th>
+                            <th>CVV</th>
+                            <th>Address</th>
+                        </tr>
+                        </thead>
+                        <tfoot>
+                        <tr>
+                            <th>Id</th>
+                            <th>Name</th>
+                            <th>Card Number</th>
+                            <th>Month</th>
+                            <th>Year</th>
+                            <th>CVV</th>
+                            <th>Address</th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+    <div class="modal fade show"
+         id="cardmodify"
+         tabindex="-1" role="dialog" aria-labelledby="profileModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="profileModalLabel">Are You Sure you want to proceed</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">select the confirm Button to proceed.
+                    <div id="finaldone">
+                        <form id="mydonefinal" method="get">
+                            <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="checkbox" id="usedgoogle" class="form-check-input" value="google">used on
+                                google
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input type="checkbox" id="usedamazon" class="form-check-input" value="">used on amazon
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label for="amountdone">Amount Done:</label>
+                            <input type="number" class="form-control" id="amountdone">
+                        </div>
+                        <div class="form-group">
+                            <label for="usedwhere">Usage:</label>
+                            <input type="text" class="form-control" id="usedwhere">
+                        </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" id="confirm">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page level plugins -->
+    <script src="../static/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="../static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+    <!-- Page level custom scripts -->
+    <script>
+        var data = {{ cards|safe }};
+        var action_nik = "normal";
+
+        var table = $('#dataTable').DataTable({
+            data: data,
+            deferRender: true,
+            scrollY: 300,
+            scrollCollapse: true,
+            scroller: true,
+            select: true
+        });
+        var instance_nik;
+        $('#dataTable tbody').on('dblclick', 'tr', function () {
+            $(this).toggleClass('selected');
+            $('.actionButtons').toggleClass('hide');
+            instance_nik = table.row(this).data();
+            action = "update"
+            console.log(instance_nik);
+        });
+        $('#usefordeleting').click(function () {
+            action = "delete"
+            $('#profileModalLabel').text("Are You Sure you want to proceed with deleting card");
+//$("#cardmodify").toggle();
+        });
+        $('#usefordone').click(function () {
+            action = "update"
+            action_nik="donefinal"
+            $('#profileModalLabel').text("Are you sure your are done with card");
+            $("#finaldone").toggle();
+        });
+
+        $('#useforchecking').click(function () {
+            action = "update";
+            $('#profileModalLabel').text("Are You Sure you want to proceed with checking card");
+//$("#cardmodify").toggle();
+        });
+        $('#confirm').click(function () {
+            if (action_nik === 'donefinal'){
+                tosend = [];
+                tosend['used_on_google'] = $('#usedgoogle').is(":checked");
+                tosend['used_on_amazon'] = $('#usedamazon').is(":checked");
+                tosend['amount'] = $('#amountdone').val();
+                tosend['usage'] = $('#usedwhere').val();
+                query_string = param(tosend)
+                $.get(action + "/"+instance_nik[0]+"?action=done&"+query_string, function (data, status) {
+                alert("Data: " + data + "\nStatus: " + status);
+            });
+            }
+            else{
+                 $.get(action + "/" + instance_nik[0], function (data, status) {
+                alert("Data: " + data + "\nStatus: " + status);
+            });
+            }
+
+        });
+function param(object)
+{
+    var parameters = [];
+    for (var property in object) {
+        if (object.hasOwnProperty(property)) {
+            parameters.push(encodeURI(property + '=' + object[property]));
+        }
+    }
+
+    return parameters.join('&');
+}
+    </script>
+
+
+{% endblock %}
